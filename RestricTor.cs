@@ -10,6 +10,7 @@ namespace g2wicked
    {
    		public static string SSID = "";
    		public static bool torIsOn;
+   		public static string yo = "";
 
    		static bool allowSSID(string SSID)
    		{
@@ -91,7 +92,7 @@ namespace g2wicked
 				}
 				case 1:
 				{
-					SW.WriteLine("tasklist | find \"uTorrent\"");
+					SW.WriteLine("tasklist | find \"" + yo + "\"");
 					
 					//Advance streamreader position to current end of open buffer
 					while(!SR.ReadLine().Contains("tasklist")){}
@@ -110,7 +111,7 @@ namespace g2wicked
 				}
 				case 2:
 				{
-					SW.WriteLine("taskkill /F /IM \"uTorrent.exe\"");
+					SW.WriteLine("taskkill /F /IM \"" + yo + "\"");
 					Console.Write("\nTorrent Client closed");
 					break;
 				}
@@ -121,8 +122,55 @@ namespace g2wicked
     		SR.Close();
         }
 
+        public static string ShowDialog(string text, string caption)
+        {
+            Form prompt = new Form();
+            prompt.Width = 250;
+            prompt.Height = 200;
+            prompt.Text = caption;
+            prompt.MinimizeBox = false;
+            prompt.MaximizeBox = false;
+            prompt.FormBorderStyle = FormBorderStyle.FixedSingle;
+            Label textLabel = new Label() { Left = 20, Top = 20, Width = 230, Text = text };
+            TextBox textBox = new TextBox() { Left = 20, Top = 50, Width = 150, Text = "" };
+            Button confirmation = new Button() { Text = "Okay", Left = 20, Width = 50, Top = 82 };
+            Button select = new Button() { Text = "Select Files", Left = 20, Width = 100, Top = 110};
+            confirmation.Click += (sender, e) => { prompt.Close(); };
+            string t = "";
+            select.Click += (sender, e) => { textBox.Text = FileSelector();};
+            Console.Write(t);
+            //textBox.Text = string.Copy(t);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(select);
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(textBox);
+            prompt.ShowDialog();
+            return textBox.Text;
+        }
+
+        public static string FileSelector()
+        {
+        	 // Create an instance of the open file dialog box.
+            OpenFileDialog fileD = new OpenFileDialog(); //create object
+			fileD.Filter = "Applications (*.exe)|*.exe"; //define filter
+			//fileD.InitialDirectory = @"C:\\";
+			string tb = "";
+			if(fileD.ShowDialog() == DialogResult.OK)
+			{
+				tb = "" + fileD.FileName + ""; //show dialog
+				Console.Write(tb);
+			}
+			//MessageBox.show(fileD.fileName); //Get uploaded file
+            return tb;
+        }
+        [STAThreadAttribute]
         static void Main(string[] args)
         {
+        	yo = ShowDialog("What App do you wish to block today?", "What App Do You Hate?");
+        	if(yo.Equals(""))
+        	{
+        		yo = "Invalid stuff";
+        	}
         	Console.Write("\nCreate RegKey for startup");
         	RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);
         	rkApp.SetValue("RestricTor", Application.ExecutablePath.ToString());
